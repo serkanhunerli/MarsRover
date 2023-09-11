@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
 
-namespace Quız
+namespace Quiz
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -12,209 +14,54 @@ namespace Quız
             var roverLocation = Console.ReadLine();
             var commandList = Console.ReadLine();
 
-            Pleateu plateau = ParsePlateauSize(plateauSize);
-            List<Rover> rovers = ParseRoverLocations(roverLocation);
+            Pleateu plateau = InitPlateau(plateauSize);
+            Rover rover = ParseRoverLocations(plateau, roverLocation);
+            plateau.AddRover(rover);
+            plateau.ExecuteCommands(rover.Id, commandList);
 
-            foreach (var rover in rovers)
-            {
-                ExecuteCommands(plateau, rover, commandList);
-            }
-
-
-
-
-
-            foreach (var rover in rovers)
-            {
-                Console.WriteLine($"Rover {rover.Id}: {rover.CurrentLocation.x} {rover.CurrentLocation.y} {rover.CurrentLocation.Direction}");
-            }
+            Console.WriteLine($"Rover {rover.Id}: {rover.CurrentLocation.X} {rover.CurrentLocation.Y} {rover.CurrentLocation.Direction}");
         }
 
-        static Pleateu ParsePlateauSize(string input)
+        static Pleateu InitPlateau(string input)
         {
-            Pleateu plateau = new Pleateu();
+            string[] separate = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            string[] separate = input.Split(' ');
+            if (separate.Length < 2)
+                throw new Exception("you must enter valid numbers. ");
 
+            int rowSize;
 
+            int columSize;
+
+            if (!int.TryParse(separate[0], out rowSize))
+                throw new Exception("you must enter numeric for x value.");
+
+            if (!int.TryParse(separate[1], out columSize))
+                throw new Exception("you must enter numeric for y value.");
+
+            if (rowSize < 0 || columSize < 0)
+                throw new Exception("you must enter positive values.");
+
+            Pleateu plateau = new Pleateu(columSize, rowSize);
 
             return plateau;
         }
 
-        static List<Rover> ParseRoverLocations(string input)
+        static Rover ParseRoverLocations(Pleateu pleateu, string input)
         {
+            string[] separate = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var x = int.Parse(separate[0]);
+            var y = int.Parse(separate[1]);
+            var direction = (Compas)Enum.Parse(typeof(Compas), separate[2], true);
 
-            List<Rover> rovers = new List<Rover>();
-            
-            
-
-            return rovers;
-
-
-        }
-
-        static void ExecuteCommands(Pleateu plateau, Rover rover, string commands)
-        {
-            foreach (var command in commands)
+            var rover = new Rover(pleateu.Rovers.Count + 1);
+            rover.CurrentLocation = new Location()
             {
-                ICommand cmd;
-                if (command == 'L')
-                {
-                    cmd = new LeftCommand();
-                }
-                else if (command == 'R')
-                {
-                    cmd = new RightCommand();
-                }
-                else if (command == 'M')
-                {
-                    cmd = new MoveCommand();
-                }
-                else
-                {
-                    throw new ArgumentException("Geçersiz komut: " + command);
-                }
-
-                cmd.Execute(plateau, rover.Id);
-            }
-        }
-    }
-
-    public class Pleateu
-    {       
-
-        public Pleateu(int columnSize, int rowSize, List<Rover> rovers)
-        {
-            ColumnSize = columnSize;
-            RowSize = rowSize;
-            Rovers = rovers;
-        }
-
-        public int ColumnSize { get; set; }
-
-        public int RowSize { get; set; }
-
-        public List<Rover> Rovers { get; set; }
-    }
-
-    public class Rover
-    {
-        public int Id { get; set; }
-        public Location CurrentLocation { get; set; }
-    }
-
-    public class Location
-    {
-        public int x { get; set; }
-        public int y { get; set; }
-        public Compas Direction { get; set; }
-    }
-
-    public enum Compas
-    {
-        N,
-        E,
-        S,
-        W
-    }
-
-    public interface ICommand
-    {
-        void Execute(Pleateu pleateu, int roverId);
-    }
-
-    public class LeftCommand : ICommand
-    {
-        public void Execute(Pleateu pleateu, int roverId)
-        {
-            Func<Rover, bool> function = p => p.Id == roverId;
-
-            var currentRover = pleateu.Rovers.FirstOrDefault(function);
-            if (currentRover != null)
-            {
-                switch (currentRover.CurrentLocation.Direction)
-                {
-                    case Compas.N:
-                        currentRover.CurrentLocation.Direction = Compas.W;
-                        break;
-                    case Compas.E:
-                        currentRover.CurrentLocation.Direction = Compas.N;
-                        break;
-                    case Compas.S:
-                        currentRover.CurrentLocation.Direction = Compas.E;
-                        break;
-                    case Compas.W:
-                        currentRover.CurrentLocation.Direction = Compas.S;
-                        break;
-                }
-            }
-        }
-    }
-
-    public class RightCommand : ICommand
-    {
-        public void Execute(Pleateu pleateu, int roverId)
-        {
-            Func<Rover, bool> function = p => p.Id == roverId;
-
-            var currentRover = pleateu.Rovers.FirstOrDefault(function);
-
-            if (currentRover != null)
-            {
-
-                switch (currentRover.CurrentLocation.Direction)
-                {
-                    case Compas.N:
-                        currentRover.CurrentLocation.Direction = Compas.E;
-                        break;
-                    case Compas.S:
-                        currentRover.CurrentLocation.Direction = Compas.W;
-                        break;
-                    case Compas.E:
-                        currentRover.CurrentLocation.Direction = Compas.S;
-                        break;
-                    case Compas.W:
-                        currentRover.CurrentLocation.Direction = Compas.N;
-                        break;
-
-
-                }
-            }
-
-        }
-    }
-
-    public class MoveCommand : ICommand
-    {
-        public void Execute(Pleateu pleateu, int roverId)
-        {
-            Func<Rover, bool> function = p => p.Id == roverId;
-
-            var currentRover = pleateu.Rovers.FirstOrDefault(function);
-
-            if (currentRover != null)
-            {
-
-                switch (currentRover.CurrentLocation.Direction)
-                {
-                    case Compas.N:
-                        currentRover.CurrentLocation.y += 1;
-                        break;
-                    case Compas.S:
-                        currentRover.CurrentLocation.y -= 1;
-                        break;
-                    case Compas.E:
-                        currentRover.CurrentLocation.x += 1;
-                        break;
-                    case Compas.W:
-                        currentRover.CurrentLocation.x -= 1;
-                        break;                        
-
-                }
-
-            }
-
-
+                X = x,
+                Y = y,
+                Direction = direction
+            };
+            return rover;
         }
     }
 }
