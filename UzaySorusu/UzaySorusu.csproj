@@ -43,8 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compas.cs" />
+    <Compile Include="ICommand.cs" />
+    <Compile Include="LeftCommand.cs" />
+    <Compile Include="Location.cs" />
+    <Compile Include="MoveCommand.cs" />
+    <Compile Include="Pleateu.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RightCommand.cs" />
+    <Compile Include="Rover.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
